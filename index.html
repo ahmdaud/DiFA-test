@@ -567,6 +567,30 @@
   @keyframes flash-row { from { background: var(--brand-soft); } to { background: transparent; } }
   .row-flash td, .row-flash.q-item { animation: flash-row 1.6s ease-out; }
 
+  /* ---------- Paginasi daftar surat ---------- */
+  .tabs { scroll-margin-top: 84px; }
+  .pager { display: flex; align-items: center; justify-content: space-between; gap: 10px 16px; flex-wrap: wrap; padding: 12px 16px; border-top: 1px solid var(--border); }
+  .pager-info { font-size: 13px; color: var(--text-3); font-variant-numeric: tabular-nums; }
+  .pager-ctl { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+  .pager-size { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-3); }
+  .pager-size .select-sm { height: 32px; padding: 0 28px 0 10px; font-size: 13px; }
+  .pg { min-width: 34px; height: 34px; padding: 0 10px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 1px solid transparent; border-radius: var(--r-sm); color: var(--text-2); font-size: 13px; font-weight: 500; font-variant-numeric: tabular-nums; }
+  .pg:hover:not(:disabled):not(.on) { background: var(--surface-2); color: var(--text); }
+  .pg.on { background: var(--brand-soft); color: var(--brand-ink); font-weight: 600; }
+  .pg:disabled { opacity: 0.45; cursor: not-allowed; }
+  .pg-gap { padding: 0 4px; color: var(--text-3); }
+  @media (max-width: 900px) { .tabs { scroll-margin-top: 130px; } }
+  @media (max-width: 720px) {
+    .pager { flex-direction: column; align-items: stretch; padding: 12px 14px; }
+    .pager-info { text-align: center; }
+    .pager-ctl { justify-content: center; flex-wrap: nowrap; }
+    .pager-ctl .pg { flex: 1 1 0; height: 44px; }
+    .pager-ctl .pg-num:not(.on), .pager-ctl .pg-gap { display: none; }
+    .pager-ctl .pg-num.on { flex: 0 0 auto; min-width: 52px; }
+    .pager-size { justify-content: center; }
+    .pager-size .select-sm { min-height: 40px; font-size: 16px; }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
     .skel { animation: none; }
@@ -899,11 +923,48 @@
     return Promise.resolve(fallback());
   }
 
+  /* ---------- Paginasi ---------- */
+  const PAGE_SIZES = [10, 25, 50, 100];
+  function ukuranHalamanAwal() {
+    const n = Number(store.get('pagesize'));
+    return PAGE_SIZES.indexOf(n) > -1 ? n : 25;
+  }
+  function pageNumbers(p, n) {
+    const set = new Set([1, n, p - 1, p, p + 1]);
+    if (p <= 3) { set.add(2); set.add(3); }
+    if (p >= n - 2) { set.add(n - 1); set.add(n - 2); }
+    const arr = Array.from(set).filter(x => x >= 1 && x <= n).sort((a, b) => a - b);
+    const out = [];
+    arr.forEach((x, i) => { if (i && x - arr[i - 1] > 1) out.push('gap'); out.push(x); });
+    return out;
+  }
+  /** Kontrol halaman di bawah tabel. Tidak ditampilkan bila seluruh daftar muat dalam satu halaman terkecil. */
+  function pagerHTML(kind, total, page, size) {
+    if (total <= PAGE_SIZES[0]) return '';
+    const n = Math.max(1, Math.ceil(total / size));
+    const dari = (page - 1) * size + 1, ke = Math.min(total, page * size);
+    const btn = (p, label, cls, dis, attrs) =>
+      '<button type="button" class="pg' + cls + '" data-act="page-go" data-kind="' + kind + '" data-page="' + p + '"' + (dis ? ' disabled' : '') + (attrs || '') + '>' + label + '</button>';
+    const nums = pageNumbers(page, n).map(x => x === 'gap'
+      ? '<span class="pg-gap" aria-hidden="true">&hellip;</span>'
+      : btn(x, x, ' pg-num' + (x === page ? ' on' : ''), false, x === page ? ' aria-current="page"' : ' aria-label="Halaman ' + x + '"')).join('');
+    return '<nav class="pager" aria-label="Navigasi halaman daftar">' +
+      '<div class="pager-info">Menampilkan ' + dari + '&ndash;' + ke + ' dari ' + total + ' surat' + (n > 1 ? ' &middot; Halaman ' + page + ' dari ' + n : '') + '</div>' +
+      (n > 1 ? '<div class="pager-ctl">' + btn(page - 1, 'Sebelumnya', '', page <= 1, ' aria-label="Halaman sebelumnya"') + nums + btn(page + 1, 'Berikutnya', '', page >= n, ' aria-label="Halaman berikutnya"') + '</div>' : '') +
+      '<label class="pager-size">Per halaman <select class="select-sm" data-change="page-size" data-kind="' + kind + '" aria-label="Jumlah surat per halaman">' +
+      PAGE_SIZES.map(z => '<option value="' + z + '"' + (z === size ? ' selected' : '') + '>' + z + '</option>').join('') + '</select></label></nav>';
+  }
+  /** Membawa pandangan ke awal daftar setelah pindah halaman (tab di atas tabel). */
+  function keAwalDaftar(kind) {
+    const t = $(kind === 'masuk' ? '#masukTabs' : '#keluarTabs');
+    if (t && t.scrollIntoView) t.scrollIntoView({ block: 'start' });
+  }
+
   /* ---------- State ---------- */
   const S = {
     page: 'dashboard', nav: 0,
-    masuk: { rows: [], tahun: null, tahunTersedia: [], tab: 'aktif', q: '', fetchedAt: 0 },
-    keluar: { rows: [], tahun: null, tahunTersedia: [], tab: 'semua', q: '', fetchedAt: 0 },
+    masuk: { rows: [], tahun: null, tahunTersedia: [], tab: 'aktif', q: '', fetchedAt: 0, page: 1, size: ukuranHalamanAwal() },
+    keluar: { rows: [], tahun: null, tahunTersedia: [], tab: 'semua', q: '', fetchedAt: 0, page: 1, size: ukuranHalamanAwal() },
     lap: { tab: 'masuk', data: null },
     master: { tab: 'pejabat', pejabat: [], klasifikasi: [] },
     masterCache: { pejabat: null, klasifikasi: null },
@@ -1403,10 +1464,14 @@
       box.innerHTML = emptyState('inbox', msg, '', m.tab === 'semua' && !q ? '<button type="button" class="btn btn-primary" data-act="add-masuk">' + ico('plus') + 'Catat surat masuk</button>' : '');
       return;
     }
+    const total = rows.length, nHal = Math.max(1, Math.ceil(total / m.size));
+    if (m.page > nHal) m.page = nHal;
+    if (m.page < 1) m.page = 1;
+    const pageRows = rows.slice((m.page - 1) * m.size, m.page * m.size);
     const note = (m.tab === 'aktif' || m.tab === 'manual') ? '<p class="list-note">Diurutkan dari yang paling lama menunggu.</p>' : '';
     box.innerHTML = note +
       '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>No. Agenda</th><th>Surat</th><th>Diterima</th><th>Pemegang saat ini</th><th>Status</th><th><span class="sr-only">Aksi</span></th></tr></thead><tbody>' +
-      rows.map(masukRow).join('') + '</tbody></table></div>';
+      pageRows.map(masukRow).join('') + '</tbody></table></div>' + pagerHTML('masuk', total, m.page, m.size);
   }
 
   function masukRow(r) {
@@ -1591,7 +1656,7 @@
     const y = row['Diterima Tanggal'] ? new Date(row['Diterima Tanggal']).getFullYear() : null;
     if (S.masuk.tahun && y && y !== S.masuk.tahun) return;       // tahun lain: tidak masuk daftar yang sedang tampil
     const i = S.masuk.rows.findIndex(r => r['Kode Tracking'] === kode);
-    if (i >= 0) S.masuk.rows[i] = row; else S.masuk.rows.unshift(row);   // daftar urut terbaru di depan
+    if (i >= 0) S.masuk.rows[i] = row; else { S.masuk.rows.unshift(row); S.masuk.page = 1; }   // daftar urut terbaru di depan
     updateDisposisiBadge();
   }
   function upsertKeluar(row) {
@@ -1601,7 +1666,7 @@
     const y = row['Tanggal'] ? new Date(row['Tanggal']).getFullYear() : null;
     if (S.keluar.tahun && y && y !== S.keluar.tahun) return;
     const i = S.keluar.rows.findIndex(r => r['Nomor Surat Lengkap'] === nomor);
-    if (i >= 0) S.keluar.rows[i] = row; else S.keluar.rows.unshift(row);
+    if (i >= 0) S.keluar.rows[i] = row; else { S.keluar.rows.unshift(row); S.keluar.page = 1; }
   }
   /** Menyorot baris yang baru berubah sebentar supaya perubahannya terlihat. */
   function flashRow(selector) {
@@ -1863,8 +1928,12 @@
         !q && k.tab !== 'terbit' ? '<button type="button" class="btn btn-primary" data-act="add-keluar">' + ico('plus') + 'Buat surat keluar</button>' : '');
       return;
     }
+    const total = rows.length, nHal = Math.max(1, Math.ceil(total / k.size));
+    if (k.page > nHal) k.page = nHal;
+    if (k.page < 1) k.page = 1;
+    const pageRows = rows.slice((k.page - 1) * k.size, k.page * k.size);
     box.innerHTML = '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Nomor surat</th><th>Perihal</th><th>Tanggal</th><th>Penandatangan</th><th>Status</th><th><span class="sr-only">Aksi</span></th></tr></thead><tbody>' +
-      rows.map(r => {
+      pageRows.map(r => {
         const nomor = r['Nomor Surat Lengkap'];
         const url = safeUrl(r['File PDF (URL)']);
         return '<tr class="row-click" data-act="open-keluar" data-nomor="' + esc(nomor) + '">' +
@@ -1877,7 +1946,7 @@
           (url ? '<a class="btn-icon" href="' + esc(url) + '" target="_blank" rel="noopener" aria-label="Buka file PDF" title="Buka file PDF">' + ico('clip') + '</a>' : '') +
           '<button type="button" class="btn btn-secondary btn-sm" data-act="open-keluar" data-nomor="' + esc(nomor) + '">' + ico('pencil') + 'Edit</button>' +
           '</td></tr>';
-      }).join('') + '</tbody></table></div>';
+      }).join('') + '</tbody></table></div>' + pagerHTML('keluar', total, k.page, k.size);
   }
 
   /* ---------- Form buat surat keluar ---------- */
@@ -2450,16 +2519,16 @@
     'nav': el => navigateTo(el.dataset.page),
     'goto': el => {
       const p = el.dataset.page, t = el.dataset.tab;
-      if (p === 'masuk' && t) S.masuk.tab = t;
-      if (p === 'keluar' && t) S.keluar.tab = t;
+      if (p === 'masuk' && t) { S.masuk.tab = t; S.masuk.page = 1; }
+      if (p === 'keluar' && t) { S.keluar.tab = t; S.keluar.page = 1; }
       navigateTo(p);
     },
     'toggle-theme': () => toggleTheme(),
     'bnav': el => {
       const k = el.dataset.bnav;
       if (k === 'lainnya') { openMoreMenu(); return; }
-      if (k === 'masuk') S.masuk.tab = 'semua';
-      if (k === 'disposisi') S.masuk.tab = 'aktif';
+      if (k === 'masuk') { S.masuk.tab = 'semua'; S.masuk.page = 1; }
+      if (k === 'disposisi') { S.masuk.tab = 'aktif'; S.masuk.page = 1; }
       navigateTo(k === 'disposisi' ? 'masuk' : k);
     },
     'nav-close': el => { closeDialog(false); navigateTo(el.dataset.page); },
@@ -2473,8 +2542,14 @@
     'lanjut-toggle': () => { const b = $('#lanjutBox'); if (b && !b.hidden) { b.hidden = true; } else showLanjut(); },
     'lanjut-cancel': () => { const b = $('#lanjutBox'); if (b) b.hidden = true; },
     'submit-lanjut': el => submitLanjut(el.dataset.kode),
-    'tab-masuk': el => { S.masuk.tab = el.dataset.tab; renderMasukList(); syncBnav(); },
-    'tab-keluar': el => { S.keluar.tab = el.dataset.tab; renderKeluarList(); },
+    'tab-masuk': el => { S.masuk.tab = el.dataset.tab; S.masuk.page = 1; renderMasukList(); syncBnav(); },
+    'tab-keluar': el => { S.keluar.tab = el.dataset.tab; S.keluar.page = 1; renderKeluarList(); },
+    'page-go': el => {
+      const kind = el.dataset.kind, st = S[kind];
+      st.page = Number(el.dataset.page) || 1;
+      if (kind === 'masuk') renderMasukList(); else renderKeluarList();
+      keAwalDaftar(kind);
+    },
     'tab-lap': el => { S.lap.tab = el.dataset.tab; renderLapTables(); },
     'tab-master': el => { S.master.tab = el.dataset.tab; renderMasterShell(); loadMasterTab().catch(showError); },
     'save-keluar': el => saveKeluar(el.dataset.mode),
@@ -2519,13 +2594,21 @@
   };
 
   const CHANGES = {
-    'year-masuk': el => { S.masuk.tahun = Number(el.value); S.masuk.rows = []; S.masuk.fetchedAt = 0; $('#masukList').innerHTML = '<div class="pad">' + skeleton() + '</div>'; PAGES.masuk(S.nav).catch(showError); },
-    'year-keluar': el => { S.keluar.tahun = Number(el.value); S.keluar.rows = []; S.keluar.fetchedAt = 0; $('#keluarList').innerHTML = '<div class="pad">' + skeleton() + '</div>'; PAGES.keluar(S.nav).catch(showError); },
+    'year-masuk': el => { S.masuk.tahun = Number(el.value); S.masuk.page = 1; S.masuk.rows = []; S.masuk.fetchedAt = 0; $('#masukList').innerHTML = '<div class="pad">' + skeleton() + '</div>'; PAGES.masuk(S.nav).catch(showError); },
+    'year-keluar': el => { S.keluar.tahun = Number(el.value); S.keluar.page = 1; S.keluar.rows = []; S.keluar.fetchedAt = 0; $('#keluarList').innerHTML = '<div class="pad">' + skeleton() + '</div>'; PAGES.keluar(S.nav).catch(showError); },
     'l-selesai': el => {
       const on = el.checked;
       $$('.l-target:not(.l-selesai)').forEach(c => { if (on) c.checked = false; c.disabled = on; });
       const opt = $('#l_petunjukOpsional'); if (opt) opt.hidden = !on;
       const btn = $('#btnLanjutkan'); if (btn) btn.textContent = on ? 'Tandai selesai' : 'Catat disposisi';
+    },
+    'page-size': el => {
+      const z = Number(el.value);
+      if (PAGE_SIZES.indexOf(z) < 0) return;
+      S.masuk.size = z; S.keluar.size = z; S.masuk.page = 1; S.keluar.page = 1;
+      store.set('pagesize', z);
+      if (el.dataset.kind === 'masuk') renderMasukList(); else renderKeluarList();
+      keAwalDaftar(el.dataset.kind);
     },
     'tujuan-change': () => onTujuanChange(),
     'keluar-preview': () => updateNomorPreview(),
@@ -2533,8 +2616,8 @@
   };
 
   const INPUTS = {
-    'q-masuk': el => { S.masuk.q = el.value; renderMasukList(); },
-    'q-keluar': el => { S.keluar.q = el.value; renderKeluarList(); },
+    'q-masuk': el => { S.masuk.q = el.value; S.masuk.page = 1; renderMasukList(); },
+    'q-keluar': el => { S.keluar.q = el.value; S.keluar.page = 1; renderKeluarList(); },
     'global-search': debounce(el => runSearch(el.value), 200)
   };
 
