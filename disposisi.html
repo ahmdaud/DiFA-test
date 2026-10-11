@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#075985">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+  <title>Formulir Disposisi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f8fafc; --surface: #ffffff; --surface-2: #f1f5f9; --border: #e2e8f0; --border-strong: #cbd5e1;
+      --text: #0f172a; --text-2: #475569; --text-3: #556579;
+      --brand: #075985; --brand-hover: #0c4a6e; --on-brand: #ffffff; --brand-soft: #e0f2fe;
+      --ok-soft: #f0fdfa; --ok-ink: #115e59;
+      --danger-ink: #991b1b;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0b1220; --surface: #111a2c; --surface-2: #18243a; --border: #25334d; --border-strong: #38496a;
+        --text: #e6edf6; --text-2: #b4c2d6; --text-3: #93a4bc;
+        --brand: #38bdf8; --brand-hover: #7dd3fc; --on-brand: #06121f; --brand-soft: rgba(56,189,248,.14);
+        --ok-soft: rgba(45,212,191,.14); --ok-ink: #5eead4;
+        --danger-ink: #fca5a5;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; font-size: 14px; line-height: 1.5;
+      background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased;
+      display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 24px;
+    }
+    :focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+    .card { background: var(--surface); max-width: 500px; width: 100%; border: 1px solid var(--border); border-radius: 16px; overflow: hidden; box-shadow: 0 16px 40px rgba(15,23,42,.12); }
+    .head { background: #075985; color: #fff; padding: 20px 24px; }
+    .head .kode { font-size: 12.5px; color: #e0f2fe; }
+    .head .kode b { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-weight: 500; }
+    .head h2 { margin: 4px 0 0; font: 700 18px/1.3 'Plus Jakarta Sans', 'Inter', sans-serif; }
+    .body { padding: 22px 24px; }
+    .row { margin-bottom: 14px; }
+    .row .label { color: var(--text-3); font-size: 12.5px; }
+    .row .value { font-weight: 600; margin-top: 2px; overflow-wrap: anywhere; }
+    .holder { color: var(--brand); }
+    .person { margin-top: 4px; }
+    .person:first-child { margin-top: 0; }
+    .person .pname { display: block; font-weight: 600; }
+    .person .pjab { display: block; font-weight: 400; font-size: 13px; color: var(--text-3); }
+    .holder .person .pname { color: var(--brand); }
+    .checkbox-item { padding: 6px 0; }
+    .checkbox-item .opt { display: block; line-height: 1.35; }
+    .checkbox-item .opt-nama { display: block; font-weight: 600; }
+    .checkbox-item .opt-jab { display: block; font-size: 12.5px; color: var(--text-3); }
+    .divider { border-top: 1px solid var(--border); margin: 18px 0; }
+    .attachment-link {
+      display: inline-flex; align-items: center; gap: 6px; color: var(--brand); text-decoration: none; font-weight: 600;
+      background: var(--brand-soft); padding: 6px 12px; border-radius: 8px; font-size: 13px; min-height: 36px;
+    }
+    .attachment-link:hover { text-decoration: underline; }
+    label.form-label { display: block; font-size: 13px; font-weight: 500; color: var(--text-2); margin: 16px 0 6px; }
+    label.form-label small { font-weight: 400; color: var(--text-3); }
+    select, textarea {
+      width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-strong);
+      font: inherit; font-size: 14px; background: var(--surface); color: var(--text); min-height: 42px;
+    }
+    html { color-scheme: light dark; }
+    select:focus, textarea:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-soft); }
+    textarea { resize: vertical; min-height: 84px; }
+    .checkbox-group { max-height: 220px; overflow-y: auto; border: 1px solid var(--border-strong); border-radius: 8px; padding: 4px 12px; }
+    .checkbox-item { display: flex; align-items: center; gap: 10px; font-size: 14px; min-height: 42px; border-bottom: 1px solid var(--border); cursor: pointer; }
+    .checkbox-item:last-child { border-bottom: none; }
+    .checkbox-item input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--brand); flex: none; }
+    .btn-submit {
+      margin-top: 20px; width: 100%; min-height: 46px; padding: 12px; background: var(--brand); color: var(--on-brand);
+      border: none; border-radius: 10px; font: 600 15px 'Inter', sans-serif; cursor: pointer;
+    }
+    .btn-submit:hover { background: var(--brand-hover); }
+    .btn-submit:disabled { opacity: .6; cursor: not-allowed; }
+    .result { text-align: center; padding: 14px 4px; }
+    .result .ico { width: 44px; height: 44px; margin: 0 auto 10px; display: block; color: var(--ok-ink); }
+    .result.warn .ico { color: var(--danger-ink); }
+    .result h3 { margin: 0 0 6px; font: 700 17px 'Plus Jakarta Sans', 'Inter', sans-serif; }
+    .result p { color: var(--text-2); margin: 0; }
+    .hist { margin: 18px 0 4px; padding: 14px 14px 4px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; }
+    .hist-title { font: 700 14px 'Plus Jakarta Sans', 'Inter', sans-serif; margin-bottom: 10px; }
+    .hist-item { position: relative; padding: 0 0 12px 16px; border-left: 2px solid var(--border-strong); margin-left: 4px; }
+    .hist-item::before { content: ''; position: absolute; left: -6px; top: 4px; width: 10px; height: 10px; border-radius: 50%; background: var(--surface); border: 2px solid var(--border-strong); }
+    .hist-last::before { background: var(--brand); border-color: var(--brand); }
+    .hist-last { border-left-color: transparent; }
+    .hist-head { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+    .hist-head span { font-size: 12.5px; color: var(--text-3); white-space: nowrap; }
+    .hist-line { font-size: 13.5px; color: var(--text-2); margin-top: 2px; }
+    .hist-line span { color: var(--text-3); margin-right: 6px; }
+    .hist-note { margin-top: 6px; padding: 8px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; font-size: 13.5px; white-space: pre-line; overflow-wrap: anywhere; }
+    .hist-note span { display: block; font-size: 12px; color: var(--text-3); margin-bottom: 2px; }
+    .checkbox-selesai { border-bottom: 2px solid var(--border-strong) !important; background: var(--brand-soft); margin: 4px -12px 4px; padding: 0 12px; border-radius: 6px; }
+    .checkbox-item input:disabled + span { opacity: .5; }
+    .note { font-size: 12.5px; color: var(--text-3); margin-top: 16px; line-height: 1.55; border-top: 1px solid var(--border); padding-top: 14px; }
+    .err { font-size: 13px; color: var(--danger-ink); margin-top: 6px; min-height: 0; }
+    .err:empty { display: none; }
+    @media (max-width: 520px) {
+      body { padding: 0; align-items: flex-start; }
+      .card { border-radius: 0; border: 0; min-height: 100vh; box-shadow: none; max-width: 100%; }
+      .head, .body { padding: 18px 16px; }
+      select, textarea { font-size: 16px; min-height: 46px; }
+      .checkbox-group { max-height: 280px; }
+      .checkbox-item { min-height: 48px; }
+      .btn-submit { position: sticky; bottom: 12px; }
+    }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+  
+    .loading { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 40px 12px; color: var(--text-3); }
+    .spinner { width: 28px; height: 28px; border: 3px solid var(--brand); border-right-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .as-row { padding: 10px 12px; background: var(--brand-soft); border-radius: 10px; margin-bottom: 4px; }
+    .as-row .label { color: var(--text-3); font-size: 12.5px; }
+    .as-row .value { font-weight: 600; color: var(--brand); }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="head">
+      <div class="kode" id="kodeBox">Kode tracking <b id="kodeVal">-</b></div>
+      <h2>Formulir Disposisi Cepat</h2>
+    </div>
+    <div class="body" id="formArea">
+      <div class="loading" role="status"><span class="spinner" aria-hidden="true"></span><span>Memuat surat…</span></div>
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    'use strict';
+    var API_URL = window.DIFA_API_URL || 'https://script.google.com/macros/s/AKfycbwivyGjGCH_J3CwZOe4DFCslSg2QcFzb_yis1w0IW7Y3ui1vOJYGa9GL4kKvZ2cmhOH/exec';
+    var TOKEN = new URLSearchParams(location.search).get('t') || '';
+    var area = document.getElementById('formArea');
+
+    function esc(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+    function api(fn, args) {
+      return fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ fn: fn, args: args }),
+        redirect: 'follow'
+      }).then(function (r) { return r.json(); });
+    }
+    var ICO_OK = '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg>';
+    var ICO_WARN = '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>';
+
+    function result(warn, title, text) {
+      return '<div class="result' + (warn ? ' warn' : '') + '">' + (warn ? ICO_WARN : ICO_OK) + '<h3>' + esc(title) + '</h3><p>' + esc(text) + '</p></div>';
+    }
+    function person(p) {
+      return '<div class="person"><span class="pname">' + esc(p.nama || p.jabatan) + '</span>' + (p.nama ? '<span class="pjab">' + esc(p.jabatan) + '</span>' : '') + '</div>';
+    }
+    function persons(list) { return list && list.length ? list.map(person).join('') : '-'; }
+    function row(label, valueHTML, cls) { return '<div class="row"><div class="label">' + esc(label) + '</div><div class="value' + (cls ? ' ' + cls : '') + '">' + valueHTML + '</div></div>'; }
+
+    function riwayatHTML(list) {
+      if (!list || !list.length) return '';
+      return '<div class="hist"><div class="hist-title">Riwayat disposisi</div>' + list.map(function (h, i) {
+        return '<div class="hist-item' + (i === list.length - 1 ? ' hist-last' : '') + '">' +
+          '<div class="hist-head"><b>' + esc(h.dari) + '</b><span>' + esc(h.tanggal) + '</span></div>' +
+          (h.petunjuk ? '<div class="hist-line"><span>Petunjuk</span>' + esc(h.petunjuk) + '</div>' : '') +
+          (h.kepada ? '<div class="hist-line"><span>' + (h.awal ? 'Ditujukan kepada' : 'Diteruskan kepada') + '</span>' + esc(h.kepada) + '</div>' : '') +
+          (h.selesai ? '<div class="hist-line"><span>Hasil</span>Surat ditandai selesai</div>' : '') +
+          (h.catatan ? '<div class="hist-note"><span>Catatan ' + esc(h.dari) + '</span>' + esc(h.catatan) + '</div>' : '') +
+          '</div>';
+      }).join('') + '</div>';
+    }
+
+    function suratHTML(d) {
+      var s = d.surat;
+      return row('Hal', esc(s.hal || '-')) +
+        row('Dari', esc(s.dari || '-')) +
+        row('Nomor naskah dinas', esc(s.nomorNaskah || '-')) +
+        row('Jenis dan sifat', esc((s.jenis || '-') + ', ' + (s.sifat || '-'))) +
+        row('Ditujukan awal kepada', persons(d.tujuanAwal)) +
+        row('Dipegang sekarang', persons(d.pemegang), 'holder') +
+        (s.lampiran ? '<div class="row"><div class="label">Lampiran</div><div class="value"><a href="' + esc(s.lampiran) + '" target="_blank" rel="noopener noreferrer" class="attachment-link">Buka file PDF</a></div></div>' : '') +
+        riwayatHTML(d.riwayat);
+    }
+
+    function formHTML(d) {
+      var opsi = d.petunjuk.map(function (p) { return '<option>' + esc(p) + '</option>'; }).join('');
+      var pj = d.pejabat.map(function (p) {
+        return '<label class="checkbox-item"><input type="checkbox" class="target-checkbox" value="' + esc(p.jabatan) + '" />' +
+          '<span class="opt">' + (p.nama
+            ? '<span class="opt-nama">' + esc(p.nama) + '</span><span class="opt-jab">' + esc(p.jabatan) + (p.kode ? ' (' + esc(p.kode) + ')' : '') + '</span>'
+            : '<span class="opt-nama">' + esc(p.jabatan) + '</span>' + (p.kode ? '<span class="opt-jab">' + esc(p.kode) + '</span>' : '')) +
+          '</span></label>';
+      }).join('');
+      return '<div class="as-row"><div class="label">Anda mengisi sebagai</div><div class="value">' + esc(d.sebagai.nama ? d.sebagai.nama + ' \u2014 ' + d.sebagai.jabatan : d.sebagai.jabatan) + '</div></div>' +
+        '<label class="form-label" for="petunjuk">Petunjuk disposisi <small id="petunjukOpsional" hidden>(boleh dikosongkan bila memilih Selesai)</small></label>' +
+        '<select id="petunjuk"><option value="">Pilih petunjuk…</option>' + opsi + '</select>' +
+        '<div class="err" id="errPetunjuk" role="alert"></div>' +
+        '<span class="form-label" style="display:block;">Diteruskan kepada <small>boleh lebih dari satu, atau pilih Selesai</small></span>' +
+        '<div id="diteruskanGroup" class="checkbox-group">' +
+        '<label class="checkbox-item checkbox-selesai"><input type="checkbox" id="chkSelesai" /><span><b>Selesai</b> \u2014 surat sudah tuntas, tidak diteruskan ke siapa pun</span></label>' + pj + '</div>' +
+        '<div class="err" id="errTujuan" role="alert"></div>' +
+        '<label class="form-label" for="catatan">Catatan tambahan</label>' +
+        '<textarea id="catatan" maxlength="2000" placeholder="Opsional"></textarea>' +
+        '<button class="btn-submit" id="btnSubmit" type="button">Kirim disposisi</button>' +
+        '<div class="note">Disposisi bisa diteruskan berjenjang ke beberapa pejabat atau staf secara berurutan sampai surat ditandai selesai. Setelah terkirim, sistem otomatis mengirim tautan formulir ini ke pejabat yang Anda pilih.</div>';
+    }
+
+    function bindForm() {
+      var chk = document.getElementById('chkSelesai');
+      chk.addEventListener('change', function () {
+        var on = chk.checked;
+        Array.prototype.forEach.call(document.querySelectorAll('.target-checkbox'), function (el) { if (on) el.checked = false; el.disabled = on; });
+        document.getElementById('petunjukOpsional').hidden = !on;
+        document.getElementById('btnSubmit').textContent = on ? 'Tandai selesai' : 'Kirim disposisi';
+        document.getElementById('errTujuan').textContent = '';
+      });
+      document.getElementById('btnSubmit').addEventListener('click', kirim);
+    }
+
+    function kirim() {
+      var petunjuk = document.getElementById('petunjuk').value;
+      var selesai = document.getElementById('chkSelesai').checked;
+      var checked = Array.prototype.slice.call(document.querySelectorAll('.target-checkbox:checked')).map(function (el) { return el.value; });
+      var catatan = document.getElementById('catatan').value;
+      var errP = document.getElementById('errPetunjuk'), errT = document.getElementById('errTujuan');
+      errP.textContent = ''; errT.textContent = '';
+      if (!petunjuk && !selesai) { errP.textContent = 'Pilih petunjuk disposisi, atau pilih Selesai.'; document.getElementById('petunjuk').focus(); return; }
+      if (!selesai && checked.length === 0) { errT.textContent = 'Pilih minimal satu tujuan disposisi, atau pilih Selesai.'; return; }
+
+      var btn = document.getElementById('btnSubmit');
+      var labelAwal = selesai ? 'Tandai selesai' : 'Kirim disposisi';
+      btn.disabled = true; btn.textContent = 'Mengirim…';
+      api('kirimDisposisi', [TOKEN, petunjuk, selesai ? 'Selesai' : checked.join('; '), catatan]).then(function (res) {
+        if (res && res.success) {
+          area.innerHTML = result(false, res.selesai ? 'Surat ditandai selesai' : 'Disposisi terkirim', res.message || 'Terima kasih.');
+          window.scrollTo(0, 0);
+        } else {
+          errT.textContent = (res && res.message) || 'Disposisi belum bisa dikirim.';
+          btn.disabled = false; btn.textContent = labelAwal;
+        }
+      }).catch(function () {
+        errT.textContent = 'Tidak dapat menghubungi server. Periksa koneksi, lalu coba kirim lagi.';
+        btn.disabled = false; btn.textContent = labelAwal;
+      });
+    }
+
+    function render(d) {
+      if (!d || !d.ok) {
+        area.innerHTML = result(true, d && d.status === 'kedaluwarsa' ? 'Tautan kedaluwarsa' : d && d.status === 'dicabut' ? 'Tautan dinonaktifkan' : d && d.status === 'galat' ? 'Terjadi gangguan' : 'Tautan tidak valid', (d && d.message) || 'Minta tautan baru dari admin persuratan.');
+        return;
+      }
+      document.getElementById('kodeVal').textContent = d.kode || '-';
+      var inti = suratHTML(d) + '<div class="divider"></div>';
+      if (d.status === 'selesai') {
+        area.innerHTML = inti + result(false, 'Surat sudah ditutup', 'Surat ini sudah ditandai selesai dan tidak menerima disposisi lanjutan.');
+      } else if (d.status === 'sudah') {
+        area.innerHTML = inti + result(false, 'Sudah ditindaklanjuti', 'Anda sudah menindaklanjuti surat ini. Tidak ada yang perlu dilakukan lagi.');
+      } else {
+        area.innerHTML = inti + formHTML(d);
+        bindForm();
+      }
+    }
+
+    document.getElementById('kodeBox').hidden = true;
+    if (!TOKEN) { render({ ok: false, status: 'invalid', message: 'Tautan ini tidak lengkap. Buka tautan dari pesan notifikasi yang Anda terima.' }); return; }
+    api('formDisposisi', [TOKEN]).then(function (d) {
+      document.getElementById('kodeBox').hidden = false;
+      render(d);
+    }).catch(function () {
+      area.innerHTML = result(true, 'Tidak dapat memuat', 'Server tidak dapat dihubungi. Periksa koneksi internet Anda, lalu muat ulang halaman ini.');
+    });
+  })();
+  </script>
+</body>
+</html>
